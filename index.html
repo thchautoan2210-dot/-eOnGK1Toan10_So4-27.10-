@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ôn Kiểm Tra Giữa Kì 1 - Toán 10 (Đề 4)</title>
+    
+    <!-- Cài đặt Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Cài đặt MathJax để hiển thị công thức Toán hoàn hảo -->
+    <script>
+        MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']],
+                displayMath: [['$$', '$$'], ['\\[', '\\]']],
+                processEscapes: true
+            },
+            options: {
+                ignoreHtmlClass: 'tex2jax_ignore',
+                processHtmlClass: 'tex2jax_process'
+            },
+            svg: { fontCache: 'global' }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+            color: #1e293b;
+            margin: 0;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Vùng nội dung câu hỏi dùng font serif để giống đề thi thật */
+        .math-content {
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 1.35rem; 
+            line-height: 1.7;
+        }
+
+        .option-label {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            border-radius: 0.75rem;
+            border: 2px solid #e2e8f0;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .option-label:hover {
+            border-color: #86efac;
+            background: #f0fdf4;
+        }
+
+        input[type="radio"] {
+            width: 1.25rem;
+            height: 1.25rem;
+            accent-color: #16a34a;
+            margin-right: 1rem;
+            cursor: pointer;
+        }
+
+        .tf-table th, .tf-table td {
+            border: 1px solid #cbd5e1;
+            padding: 0.75rem;
+            text-align: center;
+            vertical-align: middle;
+        }
+        .tf-table td:first-child { text-align: left; }
+        .tf-row:hover { background-color: #f8fafc; }
+
+        /* Hiệu ứng chuyển câu hỏi */
+        .fade-enter {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Tùy chỉnh Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        #score-modal { backdrop-filter: blur(5px); }
+    </style>
+</head>
+<body class="p-0 md:p-6">
+
+    <div class="flex h-full w-full flex-col max-w-6xl mx-auto bg-white shadow-2xl overflow-hidden md:rounded-2xl border border-gray-100">
+        
+        <main class="flex-1 bg-white flex flex-col relative overflow-hidden">
+            
+            <!-- Header Câu hỏi & Thanh công cụ -->
+            <div class="h-16 md:h-20 border-b flex items-center justify-between px-4 md:px-8 bg-gray-50/80 shrink-0">
+                <div class="flex items-center gap-2 md:gap-4">
+                    <span class="bg-green-100 text-green-800 text-xs md:text-sm font-bold px-3 py-1.5 rounded-full uppercase tracking-wide" id="question-badge">Phần 1</span>
+                    <h2 class="text-lg md:text-2xl font-bold text-gray-800" id="question-title">Câu 1</h2>
+                </div>
+                <div class="flex items-center gap-3 md:gap-6">
+                    <div class="text-sm md:text-lg font-bold text-gray-500 whitespace-nowrap bg-white px-3 py-1 rounded-lg border shadow-sm" id="question-counter">1 / 21</div>
+                    <button id="btn-submit" onclick="submitExam()" class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 md:px-6 rounded-xl shadow-md transition text-sm md:text-base whitespace-nowrap flex items-center gap-2">
+                        <i class="fas fa-check-circle"></i> Nộp Bài
+                    </button>
+                    <button onclick="clearData()" class="bg-white hover:bg-red-50 text-red-600 border border-red-200 font-medium py-2 px-3 md:px-4 rounded-xl transition shadow-sm" title="Xóa lịch sử làm bài">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Khu vực nội dung cuộn được -->
+            <div class="flex-1 overflow-y-auto p-4 md:p-10 tex2jax_process math-content" id="question-content-container">
+                <div id="q-text" class="font-bold mb-6 text-gray-900 text-xl"></div>
+                
+                <div id="q-image" class="mb-8 w-full flex justify-center"></div>
+                
+                <div id="q-options" class="w-full max-w-4xl mx-auto"></div>
+
+                <div id="q-check-btn-container" class="mt-8 hidden flex flex-col sm:flex-row items-start sm:items-center gap-4 max-w-4xl mx-auto">
+                    <button onclick="checkCurrentAnswer()" class="bg-blue-50 text-blue-700 hover:bg-blue-100 font-bold py-3 px-8 rounded-xl transition flex items-center gap-2 border border-blue-200 shadow-sm w-full sm:w-auto justify-center text-lg">
+                        <i class="fas fa-search"></i> Kiểm tra đáp án
+                    </button>
+                    <span id="check-error-msg" class="text-red-500 font-medium text-base hidden bg-red-50 px-4 py-2 rounded-lg border border-red-200 w-full sm:w-auto text-center"><i class="fas fa-exclamation-circle mr-1"></i> Vui lòng chọn đáp án!</span>
+                </div>
+
+                <div id="q-explanation" class="hidden mt-10 p-6 bg-yellow-50 border-l-4 border-yellow-500 rounded-r-xl shadow-sm max-w-4xl mx-auto">
+                    <h4 class="font-bold text-yellow-800 flex items-center gap-2 mb-3 text-lg"><i class="fas fa-lightbulb"></i> Lời giải chi tiết</h4>
+                    <div id="exp-text" class="text-gray-800 text-lg font-sans leading-relaxed"></div>
+                </div>
+            </div>
+
+            <!-- Footer Điều hướng -->
+            <div class="h-20 border-t flex items-center justify-between px-4 md:px-10 bg-white shrink-0 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+                <button onclick="navigate(-1)" id="btn-prev" class="px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold rounded-xl transition flex items-center gap-2 text-base">
+                    <i class="fas fa-chevron-left"></i> Câu trước
+                </button>
+                <div class="flex-1"></div>
+                <button onclick="navigate(1)" id="btn-next" class="px-8 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl transition shadow-md shadow-green-200 flex items-center gap-2 text-base">
+                    Câu tiếp <i class="fas fa-chevron-right"></i>
+                </button>
+            </div>
+        </main>
+    </div>
+
+    <div id="score-modal" class="fixed inset-0 bg-black/60 hidden items-center justify-center z-50 opacity-0 transition-opacity duration-300 px-4">
+        <div class="bg-white rounded-3xl p-8 max-w-md w-full mx-auto shadow-2xl transform scale-95 transition-transform duration-300 text-center">
+            <div class="w-24 h-24 bg-gradient-to-tr from-green-400 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg text-white">
+                <i class="fas fa-trophy text-5xl"></i>
+            </div>
+            <h2 class="text-3xl font-bold text-gray-800 mb-2">Hoàn Thành!</h2>
+            <p class="text-gray-500 mb-6 text-lg">Bạn đã hoàn thành bài kiểm tra Toán 10</p>
+            
+            <div class="bg-green-50 rounded-2xl p-6 mb-6">
+                <div class="text-sm font-semibold text-green-800 uppercase mb-1">Điểm của bạn</div>
+                <div class="text-6xl font-black text-green-600 leading-none">
+                    <span id="final-score-text">0.00</span><span class="text-2xl text-green-400">/10</span>
+                </div>
+            </div>
+            
+            <button onclick="closeModal()" class="w-full bg-gray-800 hover:bg-gray-900 text-white font-bold py-4 px-4 rounded-xl transition text-lg">
+                Xem Lại Đáp Án
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const questionsData = [
+            // --- PHẦN 1 ---
+            { id: 1, type: 'p1', part: 1, q: 'Mệnh đề phủ định của mệnh đề "$\\forall x \\in \\mathbb{R}, x^2 \\ge 0$" là',
+                options: ['$\\forall x \\in \\mathbb{R}, x^2 < 0$.', '$\\forall x \\in \\mathbb{R}, x^2 \\le 0$.', '$\\exists x \\in \\mathbb{R}, x^2 < 0$.', '$\\exists x \\in \\mathbb{R}, x^2 \\le 0$.'],
+                ans: 2, exp: 'Để lập mệnh đề phủ định, ta thay lượng từ "$\\forall$" (với mọi) bằng "$\\exists$" (tồn tại), đồng thời đổi dấu "$\\ge$" thành "$<$".<br><br><b>Đáp số: C.</b> $\\exists x \\in \\mathbb{R}, x^2 < 0$.' },
+            { id: 2, type: 'p1', part: 1, q: 'Cho tập hợp $A=\\{x \\in \\mathbb{Z} \\mid x^2 - 5x + 6 = 0\\}$. Số phần tử của tập hợp $A$ là',
+                options: ['1.', '2.', '3.', '4.'],
+                ans: 1, exp: 'Giải phương trình $x^2 - 5x + 6 = 0$ ta được hai nghiệm $x = 2$ và $x = 3$. Cả hai nghiệm đều là số nguyên (thuộc $\\mathbb{Z}$) nên $A = \\{2; 3\\}$. Tập hợp này có 2 phần tử.<br><br><b>Đáp số: B.</b> 2.' },
+            { id: 3, type: 'p1', part: 1, q: 'Cho hai tập hợp $A = [-2; 4)$, $B = (1; 6]$. Tập hợp $A \\cap B$ bằng',
+                options: ['$[-2; 6]$.', '$[1; 4)$.', '$(1; 4)$.', '$(1; 6]$.'],
+                ans: 2, exp: 'Phép giao $A \\cap B$ lấy những phần tử chung của cả hai tập hợp. Vẽ trục số, khoảng chung bị kẹp giữa lớn hơn 1 và nhỏ hơn 4.<br><br><b>Đáp số: C.</b> $(1; 4)$.' },
+            { id: 4, type: 'p1', part: 1, q: 'Một lớp có $20$ học sinh thích môn Toán, $18$ học sinh thích môn Vật lí và $30$ học sinh thích ít nhất một trong hai môn trên. Số học sinh thích cả hai môn là',
+                options: ['6.', '7.', '9.', '8.'],
+                ans: 3, exp: 'Áp dụng công thức cộng số phần tử của hai tập hợp: $n(A \\cup B) = n(A) + n(B) - n(A \\cap B)$. Thay số: $30 = 20 + 18 - n(A \\cap B) \\Rightarrow n(A \\cap B) = 8$.<br><br><b>Đáp số: D.</b> 8.' },
+            { id: 5, type: 'p1', part: 1, q: 'Cho hai tập hợp $A = (-\\infty; 3]$, $B = [0; 5)$. Tập hợp $A \\cup B$ bằng',
+                options: ['$[0; 3]$.', '$(-\\infty; 3]$.', '$(-\\infty; 5)$.', '$[0; 5)$.'],
+                ans: 2, exp: 'Phép hợp $A \\cup B$ lấy tất cả các phần tử thuộc $A$ hoặc $B$. Ghép hai khoảng này lại trên trục số, ta được một mạch liền từ vô cực âm đến dưới 5.<br><br><b>Đáp số: C.</b> $(-\\infty; 5)$.' },
+            { id: 6, type: 'p1', part: 1, q: 'Cho $A = \\{1; 2; 3; 4\\}$ và $B = \\{3; 4; 5\\}$. Tập hợp $A \\setminus B$ là',
+                options: ['$\\{3; 4\\}$.', '$\\{5\\}$.', '$\\{1; 2\\}$.', '$\\{1; 2; 5\\}$.'],
+                ans: 2, exp: 'Tập $A \\setminus B$ gồm các phần tử nằm trong $A$ nhưng không nằm trong $B$. Bỏ đi các số $3, 4$ (bị trùng) khỏi $A$, ta còn lại $1, 2$.<br><br><b>Đáp số: C.</b> $\\{1; 2\\}$.' },
+            { id: 7, type: 'p1', part: 1, q: 'Cho góc $\\alpha$ thỏa $90^\\circ < \\alpha < 180^\\circ$. Khẳng định nào sau đây đúng?',
+                options: ['$\\sin \\alpha < 0$.', '$\\cos \\alpha > 0$.', '$\\tan \\alpha < 0$.', '$\\cot \\alpha > 0$.'],
+                ans: 2, exp: 'Góc $\\alpha$ nằm ở góc phần tư thứ II trên đường tròn lượng giác (góc tù). Ở khoảng này, tung độ dương ($\\sin \\alpha > 0$) và hoành độ âm ($\\cos \\alpha < 0$). Do đó $\\tan \\alpha$ và $\\cot \\alpha$ đều âm. Nhìn vào các đáp án, chỉ có $\\tan \\alpha < 0$ là mệnh đề đúng.<br><br><b>Đáp số: C.</b> $\\tan \\alpha < 0$.' },
+            { id: 8, type: 'p1', part: 1, q: 'Cho tam giác $ABC$ có $b = 3$, $c = 5$ và $\\widehat{A} = 60^\\circ$. Khi đó cạnh $a$ bằng',
+                options: ['$\\sqrt{13}$.', '4.', '$\\sqrt{19}$.', '5.'],
+                ans: 2, exp: 'Áp dụng định lý côsin: $a^2 = b^2 + c^2 - 2bc \\cos A = 3^2 + 5^2 - 2 \\cdot 3 \\cdot 5 \\cdot \\cos 60^\\circ = 9 + 25 - 30(0,5) = 19$. Suy ra $a = \\sqrt{19}$.<br><br><b>Đáp số: C.</b> $\\sqrt{19}$.' },
+            { id: 9, type: 'p1', part: 1, q: 'Cho tam giác $ABC$ có $a = 6$ và $\\widehat{A} = 30^\\circ$. Bán kính đường tròn ngoại tiếp của tam giác là',
+                options: ['3.', '6.', '$6\\sqrt{3}$.', '12.'],
+                ans: 1, exp: 'Áp dụng định lý sin: $\\frac{a}{\\sin A} = 2R \\Rightarrow 2R = \\frac{6}{\\sin 30^\\circ} = \\frac{6}{0,5} = 12 \\Rightarrow R = 6$.<br><br><b>Đáp số: B.</b> 6.' },
+            { id: 10, type: 'p1', part: 1, q: 'Cho tam giác có ba cạnh $5, 5, 6$. Diện tích của tam giác bằng',
+                options: ['10.', '$6\\sqrt{3}$.', '12.', '15.'],
+                ans: 2, exp: 'Đây là tam giác cân. Kẻ đường cao từ đỉnh (cạnh đáy $6$), đường cao sẽ chia đáy làm hai đoạn bằng $3$. Độ dài đường cao là $h = \\sqrt{5^2 - 3^2} = 4$. Diện tích $S = \\frac{1}{2} \\cdot 6 \\cdot 4 = 12$. (Em cũng có thể dùng công thức Heron với nửa chu vi $p=8$).<br><br><b>Đáp số: C.</b> 12.' },
+            { id: 11, type: 'p1', part: 1, q: 'Cho tam giác $ABC$ có $AB = 4$, $AC = 6$ và $\\widehat{A} = 30^\\circ$. Diện tích tam giác bằng',
+                options: ['3.', '6.', '12.', '24.'],
+                ans: 1, exp: 'Dùng công thức diện tích $S = \\frac{1}{2} bc \\sin A = \\frac{1}{2} \\cdot 4 \\cdot 6 \\cdot \\sin 30^\\circ = 12 \\cdot 0,5 = 6$.<br><br><b>Đáp số: B.</b> 6.' },
+            { id: 12, type: 'p1', part: 1, q: 'Trên nửa đường tròn đơn vị tâm $O$, điểm $M \\left( \\frac{3}{5}; \\frac{4}{5} \\right)$ là điểm biểu diễn của góc $\\alpha$, với $0^\\circ < \\alpha < 90^\\circ$. Giá trị của $\\sin(180^\\circ - \\alpha)$ bằng',
+                img: '<img src="Screenshot 2026-10-27 152750.png" onerror="this.src=\'https://placehold.co/400x250/e2e8f0/475569?text=Hinh+Anh+Cau+12\'" class="max-w-full md:max-w-md h-auto rounded-xl shadow-md border-2 border-gray-200 mx-auto my-4 object-contain">',
+                options: ['$\\frac{3}{5}$', '$\\frac{4}{5}$', '$-\\frac{3}{5}$', '$-\\frac{4}{5}$'],
+                ans: 1, exp: 'Theo tính chất góc bù nhau, $\\sin(180^\\circ - \\alpha) = \\sin \\alpha$. Mà trên đường tròn lượng giác, $\\sin \\alpha$ chính là tung độ của điểm $M$. Do đó, $\\sin \\alpha = \\frac{4}{5}$.<br><br><b>Đáp số: B.</b> $\\frac{4}{5}$.' },
+
+            // --- PHẦN 2 ---
+            { id: 13, type: 'p2', part: 2, q: 'Cho $A = [-3; 2)$, $B = (0; 5]$. Xét tính đúng - sai của các khẳng định sau.',
+                statements: [
+                    { t: '$A \\cap B = (0; 2)$', ans: true },
+                    { t: '$A \\cup B = (-3; 5]$', ans: false },
+                    { t: '$A \\setminus B = [-3; 0]$', ans: true },
+                    { t: 'Với $C=[m; m+4]$, $m \\in \\mathbb{Z}$. Tập hợp $A \\cap C$ có đúng 3 phần tử là số nguyên khi và chỉ khi $m \\in \\{-5; -1\\}$.', ans: true }
+                ],
+                exp: 'a) $A \\cap B = (0; 2)$. (Phần chung của hai khoảng) $\\Rightarrow$ Đúng.<br><br>b) $A \\cup B = (-3; 5]$. (Ghép lại phải lấy cả cận vuông tại $-3$, tức là $[-3; 5]$) $\\Rightarrow$ Sai.<br><br>c) $A \\setminus B = [-3; 0]$. (Bỏ đi phần từ $0$ trở đi của $A$) $\\Rightarrow$ Đúng.<br><br>d) Các số nguyên thuộc $A$ là $\\{-3; -2; -1; 0; 1\\}$. Tập $C = [m; m+4]$ có độ dài $4$. Để $A \\cap C$ có đúng 3 phần tử nguyên, ta thử tịnh tiến $C$: Nếu $m=-5 \\Rightarrow C=[-5; -1]$, giao với $A$ lấy được $\\{-3; -2; -1\\}$ (3 số nguyên). Nếu $m=-1 \\Rightarrow C=[-1; 3]$, giao với $A$ lấy được $\\{-1; 0; 1\\}$ (3 số nguyên). Các giá trị nguyên khác của $m$ sẽ cho số lượng số nguyên khác $3$. $\\Rightarrow$ Đúng.' },
+            { id: 14, type: 'p2', part: 2, q: 'Trong một lớp học, có $22$ học sinh thích bóng đá, $18$ học sinh thích cầu lông, $9$ học sinh thích cả hai môn và $5$ học sinh không thích môn nào trong hai môn trên.',
+                statements: [
+                    { t: 'Số học sinh chỉ thích bóng đá là 13.', ans: true },
+                    { t: 'Số học sinh chỉ thích cầu lông là 9.', ans: true },
+                    { t: 'Số học sinh thích ít nhất một trong hai môn là 40.', ans: false },
+                    { t: 'Khảo sát thêm môn bóng rổ: có 14 hs thích bóng rổ, 7 hs thích bóng đá & rổ, 6 hs thích cầu lông & rổ, trong đó 3 hs thích cả 3 môn. Khi đó có 19 hs chỉ thích đúng một trong ba môn.', ans: true }
+                ],
+                exp: 'Sử dụng biểu đồ Venn:<br><br>a) Chỉ thích BĐ: $22 - 9 = 13$ học sinh. $\\Rightarrow$ Đúng.<br><br>b) Chỉ thích CL: $18 - 9 = 9$ học sinh. $\\Rightarrow$ Đúng.<br><br>c) Thích ít nhất 1 môn = Tổng chỉ thích BĐ + Chỉ thích CL + Cả hai = $13 + 9 + 9 = 31$ (hoặc dùng công thức $22 + 18 - 9 = 31$). Đề nói $40$. $\\Rightarrow$ Sai.<br><br>d) Sĩ số lớp = $31 + 5 = 36$ học sinh. Thêm môn Bóng rổ (BR):<br>Công thức số HS CHỈ thích 1 môn = Tổng từng môn - 2(tổng giao 2 môn) + 3(tổng giao 3 môn).<br>Tức là: $(22 + 18 + 14) - 2(9 + 7 + 6) + 3(3) = 54 - 44 + 9 = 19$. Số học sinh chỉ thích đúng 1 môn là 19. $\\Rightarrow$ Đúng.' },
+            { id: 15, type: 'p2', part: 2, q: 'Với $x \\in \\{1; 2; 3; ...; 12\\}$, xét hai mệnh đề chứa biến $P(x)$: "$x$ chia hết cho 3", $Q(x)$: "$x$ chia hết cho 6".',
+                statements: [
+                    { t: '$P(9)$ là mệnh đề đúng.', ans: true },
+                    { t: '$Q(9)$ là mệnh đề đúng.', ans: false },
+                    { t: 'Điều kiện "$x$ chia hết cho 3" là điều kiện cần để "$x$ chia hết cho 6".', ans: true },
+                    { t: 'Có đúng 2 giá trị của $x$ để mệnh đề $P(x) \\Rightarrow Q(x)$ là mệnh đề sai.', ans: true }
+                ],
+                exp: 'Tập hợp làm $P(x)$ đúng: $\\{3; 6; 9; 12\\}$. Tập hợp làm $Q(x)$ đúng: $\\{6; 12\\}$.<br><br>a) $P(9)$ đúng vì $9 \\vdots 3$. $\\Rightarrow$ Đúng.<br><br>b) $Q(9)$ sai vì 9 không chia hết cho 6. $\\Rightarrow$ Sai.<br><br>c) $Q(x)$ đúng thì $P(x)$ luôn đúng (chia hết cho 6 thì chắc chắn chia hết cho 3). Nên mệnh đề kéo theo $Q \\Rightarrow P$ là đúng. Lúc này, mệnh đề đứng sau (tức $P$) được gọi là điều kiện cần. $\\Rightarrow$ Đúng.<br><br>d) Mệnh đề $P(x) \\Rightarrow Q(x)$ bị sai khi $P$ ĐÚNG nhưng $Q$ SAI. Nhìn vào tập hợp, các số làm $P$ đúng mà $Q$ sai là $3$ và $9$. Có đúng 2 giá trị. $\\Rightarrow$ Đúng.' },
+            { id: 16, type: 'p2', part: 2, q: 'Cho tam giác $ABC$ có $BC = 7, CA = 5, AB = 8$. Gọi $I$ là giao điểm của ba đường phân giác trong của $\\triangle ABC$.',
+                img: '<img src="Screenshot 2026-10-27 152920.png" onerror="this.src=\'https://placehold.co/400x250/e2e8f0/475569?text=Hinh+Anh+Cau+16\'" class="max-w-full md:max-w-md h-auto rounded-xl shadow-md border-2 border-gray-200 mx-auto my-4 object-contain">',
+                statements: [
+                    { t: '$\\widehat{A} = 60^\\circ$', ans: true },
+                    { t: '$S_{ABC} = 10\\sqrt{3}$', ans: true },
+                    { t: '$r = 2\\sqrt{3}$', ans: false },
+                    { t: '$AI = 2\\sqrt{3}$', ans: true }
+                ],
+                exp: '($a=7, b=5, c=8$)<br><br>a) $\\cos A = \\frac{5^2 + 8^2 - 7^2}{2 \\cdot 5 \\cdot 8} = \\frac{40}{80} = \\frac{1}{2} \\Rightarrow \\widehat{A} = 60^\\circ$. $\\Rightarrow$ Đúng.<br><br>b) $S = \\frac{1}{2} bc \\sin A = \\frac{1}{2} \\cdot 5 \\cdot 8 \\cdot \\sin 60^\\circ = 10\\sqrt{3}$. $\\Rightarrow$ Đúng.<br><br>c) Bán kính đường tròn nội tiếp $r = \\frac{S}{p}$. Nửa chu vi $p = \\frac{7+5+8}{2} = 10$. Vậy $r = \\frac{10\\sqrt{3}}{10} = \\sqrt{3}$. (Đề nói $2\\sqrt{3}$) $\\Rightarrow$ Sai.<br><br>d) Khoảng cách từ tâm $I$ tới cạnh $AB$ chính là $r = \\sqrt{3}$. Góc $\\widehat{IAB} = \\frac{1}{2}\\widehat{A} = 30^\\circ$. Xét tam giác vuông tạo bởi $A, I$ và hình chiếu của $I$ xuống $AB$: $AI = \\frac{r}{\\sin 30^\\circ} = \\frac{\\sqrt{3}}{0,5} = 2\\sqrt{3}$. $\\Rightarrow$ Đúng.' },
+
+            // --- PHẦN 3 ---
+            { id: 17, type: 'p3', part: 3, q: 'Cho hai tập hợp $A = [-4; 3)$, $B = [m; m+2]$, với $m \\in \\mathbb{Z}$, $-8 \\le m \\le 5$. Có bao nhiêu giá trị của $m$ để $A \\cap B = \\emptyset$?',
+                ans: 5, exp: 'Để $A \\cap B = \\emptyset$, toàn bộ tập $B$ phải nằm hoàn toàn bên trái $A$ hoặc nằm hoàn toàn bên phải $A$.<br>- Nằm bên trái: $m + 2 < -4 \\Leftrightarrow m < -6$. Vì $m \\in \\mathbb{Z}$ và $m \\ge -8$ nên $m \\in \\{-8; -7\\}$. (2 giá trị)<br>- Nằm bên phải: $m \\ge 3$. Vì $m \\le 5$ nên $m \\in \\{3; 4; 5\\}$. (3 giá trị)<br>Tổng cộng có $2 + 3 = 5$ giá trị thỏa mãn.<br><br><b>Đáp số: 5.</b>' },
+            { id: 18, type: 'p3', part: 3, q: 'Cho hai mệnh đề chứa biến $P(x): 2x + 7 > 0$, $Q(x): x^2(x - 2) < 0$, $x \\in \\mathbb{Z}$. Có bao nhiêu giá trị nguyên của $x$ để $P(x)$ và $Q(x)$ đồng thời trở thành các mệnh đề đúng?',
+                ans: 4, exp: 'Từ $P(x): 2x > -7 \\Rightarrow x > -3,5$.<br>Từ $Q(x): x^2(x - 2) < 0$. Vì $x^2 \\ge 0$ nên buộc $x^2 \\neq 0$ (tức $x \\neq 0$) và $x - 2 < 0 \\Rightarrow x < 2$.<br>Kết hợp lại, ta có: $-3,5 < x < 2$ và $x \\neq 0$. Các số nguyên thỏa mãn là $\\{-3; -2; -1; 1\\}$. Có 4 giá trị.<br><br><b>Đáp số: 4.</b>' },
+            { id: 19, type: 'p3', part: 3, q: 'Cho tam giác $ABC$ có $\\widehat{A} = 30^\\circ$, $\\widehat{B} = 60^\\circ$ và chu vi bằng $6 + 2\\sqrt{3}$. Tính diện tích tam giác $ABC$. (Kết quả làm tròn đến hàng phần mười).',
+                ans: 3.5, exp: 'Tính được $\\widehat{C} = 180^\\circ - (30^\\circ + 60^\\circ) = 90^\\circ$, tam giác vuông tại $C$.<br>Gọi $c$ là độ dài cạnh huyền $AB$. Ta có các góc vuông $a = c \\cdot \\sin 30^\\circ = \\frac{c}{2}$ và $b = c \\cdot \\sin 60^\\circ = \\frac{c\\sqrt{3}}{2}$.<br>Chu vi: $c + \\frac{c}{2} + \\frac{c\\sqrt{3}}{2} = c \\frac{3+\\sqrt{3}}{2} = 6 + 2\\sqrt{3} = 2(3+\\sqrt{3})$.<br>Suy ra $c = 4$. Từ đó, hai cạnh góc vuông là $a = 2$ và $b = 2\\sqrt{3}$.<br>Diện tích $S = \\frac{1}{2}ab = \\frac{1}{2} \\cdot 2 \\cdot 2\\sqrt{3} = 2\\sqrt{3} \\approx 3,464$. Làm tròn đến hàng phần mười ta được $3,5$.<br><br><b>Đáp số: 3,5.</b>' },
+            { id: 20, type: 'p3', part: 3, q: 'Muốn đo chiều cao của một ngọn tháp, người ta chọn hai điểm $A$ và $B$ trên mặt đất... Tính chiều cao $CD$ của ngọn tháp (m).',
+                img: '<img src="Screenshot 2026-10-27 153128.png" onerror="this.src=\'https://placehold.co/400x250/e2e8f0/475569?text=Hinh+Anh+Cau+20\'" class="max-w-full md:max-w-md h-auto rounded-xl shadow-md border-2 border-gray-200 mx-auto my-4 object-contain">',
+                ans: 31.5, exp: 'Gọi độ dài đoạn $DC_1 = x$ (m, $x > 0$).<br>Trong tam giác vuông $DA_1C_1$, do $\\widehat{DA_1C_1} = 45^\\circ$ nên tam giác này vuông cân tại $C_1$, suy ra $A_1C_1 = DC_1 = x$.<br>Trong tam giác vuông $DB_1C_1$, ta có $B_1C_1 = A_1C_1 + A_1B_1 = x + 10$.<br>Áp dụng định lý Pythagoras: $DC_1^2 + B_1C_1^2 = DB_1^2 \\Leftrightarrow x^2 + (x+10)^2 = 50^2$.<br>Giải phương trình: $2x^2 + 20x - 2400 = 0 \\Leftrightarrow x^2 + 10x - 1200 = 0 \\Leftrightarrow x = 30$ hoặc $x = -40$ (loại).<br>Vậy $DC_1 = 30$ m. Chiều cao ngọn tháp là $CD = DC_1 + C_1C = 30 + 1,5 = 31,5$ (m).<br><br><b>Đáp số: 31,5.</b>' },
+            { id: 21, type: 'p3', part: 3, q: 'Một điểm $P$ nằm trong tam giác đều $ABC$ sao cho $PA = 5, PB = 12, PC = 13$. Bình phương độ dài cạnh của tam giác $ABC$ có thể viết dưới dạng $a + b\\sqrt{3}$. Tính $a + b$.',
+                img: '<img src="Screenshot 2026-10-27 153208.png" onerror="this.src=\'https://placehold.co/400x300/e2e8f0/475569?text=Hinh+Anh+Cau+21\'" class="max-w-full md:max-w-md h-auto rounded-xl shadow-md border-2 border-gray-200 mx-auto my-4 object-contain">',
+                ans: 229, exp: 'Đây là dạng bài dựng hình phụ quen thuộc ở lớp 10. Bên ngoài $\\triangle ABC$, ta dựng $\\triangle BQC$ bằng $\\triangle BPA$ (sao cho $CQ = PA = 5$, $BQ = BP = 12$).<br>Ta có $\\widehat{CBQ} = \\widehat{ABP}$.<br>Suy ra góc $\\widehat{PBQ} = \\widehat{PBC} + \\widehat{CBQ} = \\widehat{PBC} + \\widehat{ABP} = \\widehat{ABC} = 60^\\circ$.<br>Tam giác $PBQ$ có $BP = BQ = 12$ và $\\widehat{PBQ} = 60^\\circ$ nên là tam giác đều, suy ra $PQ = 12$.<br>Xét $\\triangle PQC$ có ba cạnh là $5, 12, 13$. Do $5^2 + 12^2 = 13^2$ nên $\\triangle PQC$ vuông tại $Q$ (theo Pytago đảo), suy ra $\\widehat{PQC} = 90^\\circ$.<br>Từ đó, góc $\\widehat{BQC} = \\widehat{BQP} + \\widehat{PQC} = 60^\\circ + 90^\\circ = 150^\\circ$.<br>Áp dụng định lý côsin trong $\\triangle BQC$:$BC^2 = BQ^2 + CQ^2 - 2 \\cdot BQ \\cdot CQ \\cdot \\cos 150^\\circ = 12^2 + 5^2 - 2(12)(5)\\left(-\\frac{\\sqrt{3}}{2}\\right) = 144 + 25 + 60\\sqrt{3} = 169 + 60\\sqrt{3}$.<br>Theo đề $BC^2 = a + b\\sqrt{3}$ nên $a = 169, b = 60$. Tổng $a + b = 169 + 60 = 229$.<br><br><b>Đáp số: 229.</b>' }
+        ];
+
+        let currentIndex = 0;
+        let isSubmitted = false;
+        let savedAnswers = JSON.parse(localStorage.getItem('toan10_de4_game')) || { p1: {}, p2: {}, p3: {} };
+        let checkedQuestions = JSON.parse(localStorage.getItem('toan10_de4_checked')) || {};
+
+        window.onload = () => {
+            goToQuestion(0);
+        };
+
+        function navigate(dir) {
+            const newIndex = currentIndex + dir;
+            if(newIndex >= 0 && newIndex < questionsData.length) {
+                goToQuestion(newIndex);
+            }
+        }
+
+        function goToQuestion(index) {
+            currentIndex = index;
+            const q = questionsData[index];
+            const isQuestionChecked = isSubmitted || checkedQuestions[q.id];
+            
+            document.getElementById('question-counter').innerText = `${index + 1} / ${questionsData.length}`;
+            const badge = document.getElementById('question-badge');
+            if (q.part === 1) { badge.innerText = "Phần 1: Trắc nghiệm"; badge.className = "bg-green-100 text-green-800 text-sm font-bold px-3 py-1 rounded-full uppercase tracking-wide"; }
+            if (q.part === 2) { badge.innerText = "Phần 2: Đúng/Sai"; badge.className = "bg-purple-100 text-purple-800 text-sm font-bold px-3 py-1 rounded-full uppercase tracking-wide"; }
+            if (q.part === 3) { badge.innerText = "Phần 3: Trả lời ngắn"; badge.className = "bg-orange-100 text-orange-800 text-sm font-bold px-3 py-1 rounded-full uppercase tracking-wide"; }
+            
+            document.getElementById('question-title').innerText = `Câu ${q.id > 12 && q.id <= 16 ? q.id - 12 : (q.id > 16 ? q.id - 16 : q.id)}`;
+
+            const container = document.getElementById('question-content-container');
+            container.classList.remove('fade-enter');
+            void container.offsetWidth;
+            container.classList.add('fade-enter');
+
+            document.getElementById('q-text').innerHTML = q.q;
+            
+            const imgContainer = document.getElementById('q-image');
+            if(q.img) {
+                imgContainer.innerHTML = q.img;
+                imgContainer.style.display = 'flex';
+            } else {
+                imgContainer.style.display = 'none';
+            }
+
+            renderOptions(q);
+            
+            document.getElementById('btn-prev').style.visibility = index === 0 ? 'hidden' : 'visible';
+            document.getElementById('btn-next').style.visibility = index === questionsData.length - 1 ? 'hidden' : 'visible';
+
+            const checkBtn = document.getElementById('q-check-btn-container');
+            if (!isQuestionChecked) {
+                checkBtn.classList.remove('hidden');
+                checkBtn.classList.add('flex');
+                document.getElementById('check-error-msg').classList.add('hidden');
+            } else {
+                checkBtn.classList.add('hidden');
+                checkBtn.classList.remove('flex');
+            }
+
+            const expDiv = document.getElementById('q-explanation');
+            if (isQuestionChecked) {
+                expDiv.classList.remove('hidden');
+                document.getElementById('exp-text').innerHTML = q.exp;
+            } else {
+                expDiv.classList.add('hidden');
+            }
+
+            if(window.MathJax) {
+                MathJax.typesetPromise([document.getElementById('question-content-container')]).catch((err) => console.log(err.message));
+            }
+            container.scrollTop = 0;
+        }
+
+        function renderOptions(q) {
+            const optsContainer = document.getElementById('q-options');
+            optsContainer.innerHTML = '';
+
+            const isQuestionChecked = isSubmitted || checkedQuestions[q.id];
+            const disabledAttr = isQuestionChecked ? 'disabled' : '';
+
+            if (q.type === 'p1') {
+                const savedVal = savedAnswers.p1[q.id];
+                q.options.forEach((opt, idx) => {
+                    const letter = String.fromCharCode(65 + idx);
+                    const isChecked = savedVal === idx;
+                    
+                    let bgClass = "bg-white";
+                    let borderClass = "border-gray-200";
+                    
+                    if (isQuestionChecked) {
+                        if (idx === q.ans) { bgClass = "bg-green-100"; borderClass = "border-green-500 font-bold"; }
+                        else if (isChecked) { bgClass = "bg-red-100"; borderClass = "border-red-500"; }
+                    } else if (isChecked) {
+                        bgClass = "bg-green-50"; borderClass = "border-green-500";
+                    }
+
+                    optsContainer.innerHTML += `
+                        <label class="flex items-center p-4 mb-4 rounded-xl border-2 ${borderClass} ${bgClass} cursor-pointer transition-all hover:shadow-md" onclick="if(!${isQuestionChecked}) handleP1(${q.id}, ${idx})">
+                            <input type="radio" name="p1q${q.id}" value="${idx}" ${isChecked ? 'checked' : ''} ${disabledAttr} class="w-6 h-6 text-green-600 mr-4">
+                            <span class="text-xl"><b class="mr-3">${letter}.</b> ${opt}</span>
+                        </label>`;
+                });
+            } 
+            else if (q.type === 'p2') {
+                let tableHtml = `<div class="overflow-x-auto rounded-xl border border-gray-200 shadow-sm">
+                    <table class="w-full tf-table bg-white">
+                        <tr class="bg-gray-50"><th class="text-gray-600 text-lg">Phát biểu</th><th class="w-24 text-gray-600 text-lg">Đúng</th><th class="w-24 text-gray-600 text-lg">Sai</th></tr>`;
+                
+                q.statements.forEach((stmt, sIdx) => {
+                    const letter = String.fromCharCode(97 + sIdx);
+                    const savedState = savedAnswers.p2[q.id] ? savedAnswers.p2[q.id][sIdx] : null;
+                    
+                    let rowClass = "";
+                    if (isQuestionChecked) {
+                        const isCorrect = (savedState === 'true') === stmt.ans;
+                        rowClass = isCorrect ? "bg-green-50" : (savedState ? "bg-red-50" : "");
+                    }
+
+                    tableHtml += `
+                        <tr class="tf-row ${rowClass} transition-colors">
+                            <td class="text-xl py-4 px-6">${letter}) ${stmt.t}</td>
+                            <td><input type="radio" name="p2q${q.id}s${sIdx}" value="true" ${savedState === 'true' ? 'checked' : ''} ${disabledAttr} onchange="handleP2(${q.id}, ${sIdx}, 'true')" class="w-7 h-7"></td>
+                            <td><input type="radio" name="p2q${q.id}s${sIdx}" value="false" ${savedState === 'false' ? 'checked' : ''} ${disabledAttr} onchange="handleP2(${q.id}, ${sIdx}, 'false')" class="w-7 h-7"></td>
+                        </tr>`;
+                });
+                optsContainer.innerHTML = tableHtml + `</table></div>`;
+            }
+            else if (q.type === 'p3') {
+                const savedVal = savedAnswers.p3[q.id] || '';
+                
+                let inputStyle = "border-gray-300 focus:border-green-500 focus:ring-green-200";
+                if (isQuestionChecked) {
+                    if (parseFloat(savedVal) === q.ans) inputStyle = "border-green-500 bg-green-50 text-green-700 font-bold";
+                    else inputStyle = "border-red-500 bg-red-50 text-red-700";
+                }
+
+                optsContainer.innerHTML = `
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center gap-4 mt-2 p-6 bg-gray-50 rounded-xl border border-gray-200">
+                        <span class="font-bold text-gray-700 text-xl whitespace-nowrap">Đáp án của bạn:</span>
+                        <input type="number" step="any" id="p3-input-${q.id}" value="${savedVal}" ${disabledAttr} oninput="handleP3(${q.id}, this.value)" class="border-2 rounded-xl px-4 py-3 w-full sm:w-64 text-2xl outline-none focus:ring-4 transition-all ${inputStyle}">
+                    </div>`;
+                
+                if (isQuestionChecked && parseFloat(savedVal) !== q.ans) {
+                    optsContainer.innerHTML += `<div class="mt-4 text-green-600 font-bold text-xl">Đáp án đúng: ${q.ans}</div>`;
+                }
+            }
+
+            // Gọi MathJax sau khi Render HTML để fix lỗi ký tự
+            if(window.MathJax) {
+                MathJax.typesetPromise([optsContainer]).catch((err) => console.log(err.message));
+            }
+        }
+
+        function checkCurrentAnswer() {
+            const q = questionsData[currentIndex];
+            let isAnswered = false;
+            
+            if (q.type === 'p1') {
+                isAnswered = savedAnswers.p1[q.id] !== undefined;
+            } else if (q.type === 'p2') {
+                isAnswered = savedAnswers.p2[q.id] && Object.keys(savedAnswers.p2[q.id]).length > 0;
+            } else if (q.type === 'p3') {
+                isAnswered = savedAnswers.p3[q.id] !== undefined && savedAnswers.p3[q.id] !== '';
+            }
+
+            const errorMsg = document.getElementById('check-error-msg');
+            if (!isAnswered) {
+                errorMsg.classList.remove('hidden');
+                setTimeout(() => errorMsg.classList.add('hidden'), 3000);
+                return;
+            }
+            
+            errorMsg.classList.add('hidden');
+            checkedQuestions[q.id] = true;
+            localStorage.setItem('toan10_de4_checked', JSON.stringify(checkedQuestions));
+            
+            goToQuestion(currentIndex);
+        }
+
+        function handleP1(qId, val) {
+            savedAnswers.p1[qId] = val;
+            saveData();
+            renderOptions(questionsData[currentIndex]);
+        }
+
+        function handleP2(qId, sIdx, val) {
+            if(!savedAnswers.p2[qId]) savedAnswers.p2[qId] = {};
+            savedAnswers.p2[qId][sIdx] = val;
+            saveData();
+        }
+
+        function handleP3(qId, val) {
+            if(val.trim() !== '') savedAnswers.p3[qId] = val;
+            else delete savedAnswers.p3[qId];
+            saveData();
+        }
+
+        function saveData() {
+            localStorage.setItem('toan10_de4_game', JSON.stringify(savedAnswers));
+        }
+
+        function clearData() {
+            localStorage.removeItem('toan10_de4_game');
+            localStorage.removeItem('toan10_de4_checked');
+            location.reload();
+        }
+
+        function submitExam() {
+            isSubmitted = true;
+            let totalScore = 0;
+
+            questionsData.forEach((q) => {
+                if (q.type === 'p1') {
+                    if (savedAnswers.p1[q.id] === q.ans) totalScore += 0.25;
+                } 
+                else if (q.type === 'p2') {
+                    let correctCount = 0;
+                    q.statements.forEach((stmt, sIdx) => {
+                        const userAns = savedAnswers.p2[q.id] ? savedAnswers.p2[q.id][sIdx] : null;
+                        if (userAns && (userAns === 'true') === stmt.ans) correctCount++;
+                    });
+                    if(correctCount === 1) totalScore += 0.1;
+                    if(correctCount === 2) totalScore += 0.25;
+                    if(correctCount === 3) totalScore += 0.5;
+                    if(correctCount === 4) totalScore += 1.0;
+                } 
+                else if (q.type === 'p3') {
+                    const userVal = parseFloat(savedAnswers.p3[q.id]);
+                    if (userVal === q.ans) totalScore += 0.5;
+                }
+            });
+
+            document.getElementById('btn-submit').style.display = 'none';
+            
+            document.getElementById('final-score-text').innerText = totalScore.toFixed(2);
+            const modal = document.getElementById('score-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => modal.classList.remove('opacity-0'), 50);
+
+            goToQuestion(currentIndex);
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('score-modal');
+            modal.classList.add('opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            }, 300);
+        }
+    </script>
+</body>
+</html>
